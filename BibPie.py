@@ -3,6 +3,7 @@
 import re
 import base64 
 import curses
+import curses.ascii
 import subprocess
 import ConfigParser
 import os.path
@@ -329,7 +330,9 @@ def main(screen):
             searchstring = ""
             search, matches, info, highlight, maxLight, currentSelection, maxx = setup(screen, searchstring)
         elif key == curses.KEY_RESIZE:
-              search, matches, info, highlight, maxLight, currentSelection, maxx = setup(screen, searchstring)
+            search, matches, info, highlight, maxLight, currentSelection, maxx = setup(screen, searchstring)
+        elif not curses.ascii.isprint(key):
+            quit(str(key))
         else:
             if x > maxx -2:
                 continue
