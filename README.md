@@ -11,6 +11,8 @@ Configuration
 -------------
 Configuration information read from ~/.bibpie. This file is created with default values on first run.
 
+The % in launchStr is replaced by the relative path of file.
+
 Note
 ----
 Not secure -- .bib files can get arbitrary code execution by setting file path appropriately.
