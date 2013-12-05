@@ -301,7 +301,7 @@ def main(screen):
         search.refresh()
         key = screen.getch()
         (y,x) = search.getyx()
-        if key== curses.KEY_BACKSPACE:
+        if key== curses.KEY_BACKSPACE or key == 127:
             #Check if we would leave screen
             if x<=8:
                 continue
@@ -332,7 +332,8 @@ def main(screen):
         elif key == curses.KEY_RESIZE:
             search, matches, info, highlight, maxLight, currentSelection, maxx = setup(screen, searchstring)
         elif not curses.ascii.isprint(key):
-            quit(str(key))
+            continue
+            # quit(str(key))
         else:
             if x > maxx -2:
                 continue
