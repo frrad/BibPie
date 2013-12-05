@@ -5,11 +5,7 @@ import base64
 import curses
 import subprocess
 import ConfigParser
-
-
-biblocation = 'Index.bib'
-pdfReader = 'evince'
-
+import os.path
 
 class BibItem:
 
@@ -198,14 +194,21 @@ def infoRefresh(window, index):
 def launch(item):
     if hasattr(item, 'file1'):
         path = item.file1["relativePath"]
-        command = pdfReader+' \'/home/frederick/Dropbox/References/'+path+"\'&>/dev/null"
+        pt = launchStr.find("%")
+        command = launchStr[:pt]+path+launchStr[pt+1:]
         # quit(command)
         subprocess.Popen(command, shell=True)
 
 
 def loadSettings():
+    settingPath = os.path.expanduser('~/.bibpie')
+
     config = ConfigParser.ConfigParser()
     config.optionxform = str
+
+    config.add_section('General')
+    config.set('General','PathToBib','~/Dropbox/References/Index.bib')
+    config.set('General', 'launchStr', 'evince \'/home/frederick/Dropbox/References/%\'&>/dev/null')
 
     config.add_section('MainView')
     config.set('MainView','Title','1,45')
@@ -221,9 +224,9 @@ def loadSettings():
 
 
 
-    trai = config.read('settings.cfg')
+    trai = config.read(settingPath)
     if len(trai) == 0:
-        with open('settings.cfg', 'wb') as configfile:
+        with open(settingPath, 'wb') as configfile:
             config.write(configfile)
             quit("No setting file detected. Wrote default. Please relaunch.") 
 
@@ -249,6 +252,12 @@ def loadSettings():
         splat =  xystring.split(",")
         placeTails.append((int(splat[0]),int(splat[1]),int(splat[2])))
         print option + config.get("InfoView",option)
+
+    global biblocation
+    biblocation = os.path.expanduser(config.get('General','PathToBib'))
+
+    global launchStr
+    launchStr = os.path.expanduser(config.get('General','launchStr'))
 
 
 def main(screen):
