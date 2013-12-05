@@ -257,6 +257,35 @@ def loadSettings():
     global launchStr
     launchStr = os.path.expanduser(config.get('General','launchStr'))
 
+def setup(screen, searchstring):
+    (maxy,maxx) = screen.getmaxyx()
+
+
+    searchHeight=3
+    infoHeight = 7
+    matchHeight = maxy - searchHeight - infoHeight
+
+
+    screen.refresh() 
+
+    search = curses.newwin(searchHeight,maxx,0,0) 
+    search.box() 
+    search.move(1,1)
+    search.addstr("Search:"+ searchstring)
+    search.refresh()
+
+    matches = curses.newwin(matchHeight, maxx,searchHeight,0)
+    drawHits(matches, searchstring, 0)
+
+    info = curses.newwin(infoHeight,maxx,matchHeight+searchHeight,0)
+    infoRefresh(info,0)
+
+    highlight = 0
+    maxLight = matchHeight-2
+
+    return search, matches, info, highlight, maxLight, 0, maxx
+
+
 
 def main(screen):
     loadSettings()
@@ -264,29 +293,8 @@ def main(screen):
     global bibliography
     bibliography = load(biblocation)
 
-    screen.refresh() 
-    (maxy,maxx) = screen.getmaxyx()
-
-    searchHeight=3
-    search = curses.newwin(searchHeight,maxx,0,0) 
-    search.box() 
-    search.move(1,1)
-    search.addstr("Search:")
-    search.refresh()
-
     searchstring = ""
-
-    matchHeight = int (2*maxy/3)
-    matches = curses.newwin(matchHeight, maxx,searchHeight,0)
-    drawHits(matches, "", 0)
-
-    infoHeight = maxy -matchHeight - searchHeight
-    info = curses.newwin(infoHeight,maxx,matchHeight+searchHeight,0)
-    infoRefresh(info,0)
-
-    highlight = 0
-    maxLight = matchHeight-2
-    currentSelection = 0
+    search, matches, info, highlight, maxLight, currentSelection, maxx = setup(screen, searchstring)
 
     while True:
         search.refresh()
@@ -318,6 +326,10 @@ def main(screen):
             if searchstring=="exit":
                 quit()
             launch(bibliography[currentSelection])
+            searchstring = ""
+            search, matches, info, highlight, maxLight, currentSelection, maxx = setup(screen, searchstring)
+        elif key == curses.KEY_RESIZE:
+              search, matches, info, highlight, maxLight, currentSelection, maxx = setup(screen, searchstring)
         else:
             if x > maxx -2:
                 continue
