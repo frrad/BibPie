@@ -207,7 +207,7 @@ def loadSettings():
     config.optionxform = str
 
     config.add_section('General')
-    config.set('General','PathToBib','~/Dropbox/References/Index.bib')
+    config.set('General','PathToBib','~/Index.bib')
     config.set('General', 'launchStr', 'evince \'/home/frederick/Dropbox/References/%\'&>/dev/null')
 
     config.add_section('MainView')
@@ -240,7 +240,6 @@ def loadSettings():
         xystring = config.get("MainView",option)
         splat =  xystring.split(",")
         placement.append((int(splat[0]),int(splat[1])))
-        print option + config.get("MainView",option)
 
     global showTails, placeTails
     showTails = []
@@ -251,7 +250,6 @@ def loadSettings():
         xystring = config.get("InfoView",option)
         splat =  xystring.split(",")
         placeTails.append((int(splat[0]),int(splat[1]),int(splat[2])))
-        print option + config.get("InfoView",option)
 
     global biblocation
     biblocation = os.path.expanduser(config.get('General','PathToBib'))
