@@ -282,7 +282,7 @@ def setup(screen, searchstring):
     infoRefresh(info,0)
 
     highlight = 0
-    maxLight = matchHeight-2
+    maxLight = matchHeight-1
 
     return search, matches, info, highlight, maxLight, 0, maxx
 
@@ -305,7 +305,7 @@ def main(screen):
             #Check if we would leave screen
             if x<=8:
                 continue
-            #erace in search
+            #erase in search
             search.move(y,x-1)
             search.addch(" ")
             search.move(y,x-1)
