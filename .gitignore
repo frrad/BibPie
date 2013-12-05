@@ -37,3 +37,6 @@ nosetests.xml
 
 #Bibliographies
 *.bib
+
+#Configuration File
+settings.cfg

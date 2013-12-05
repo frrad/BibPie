@@ -4,16 +4,12 @@ import re
 import base64 
 import curses
 import subprocess
+import ConfigParser
+
 
 biblocation = 'Index.bib'
 pdfReader = 'evince'
-#What columns should we put where?
-show = ["Title", "Author","Year"]
-placement = [(1,45),(46,90),(91,97)]
 
-#Specify detail view
-showTails = ["Title", "Author", "Keywords", "Publisher", "Year"]
-placeTails =[(1,1,50),(3,1,50),(5,1,50),(1,53,50),(3,53,50)]
 
 class BibItem:
 
@@ -207,8 +203,57 @@ def launch(item):
         subprocess.Popen(command, shell=True)
 
 
+def loadSettings():
+    config = ConfigParser.ConfigParser()
+    config.optionxform = str
+
+    config.add_section('MainView')
+    config.set('MainView','Title','1,45')
+    config.set('MainView','Author','46,90')
+    config.set('MainView','Year','91,97')
+
+    config.add_section('InfoView')
+    config.set('InfoView','Title','1,1,50')
+    config.set('InfoView','Author','3,1,50')
+    config.set('InfoView','Keywords','5,1,50')
+    config.set('InfoView','Publisher','1,53,50')
+    config.set('InfoView','Year','3,53,50')
+
+
+
+    trai = config.read('settings.cfg')
+    if len(trai) == 0:
+        with open('settings.cfg', 'wb') as configfile:
+            config.write(configfile)
+            quit("No setting file detected. Wrote default. Please relaunch.") 
+
+
+    global show, placement
+    show = []
+    placement = []
+
+    for option in config.options("MainView"):
+        show.append(option)
+        xystring = config.get("MainView",option)
+        splat =  xystring.split(",")
+        placement.append((int(splat[0]),int(splat[1])))
+        print option + config.get("MainView",option)
+
+    global showTails, placeTails
+    showTails = []
+    placeTails = []
+
+    for option in config.options("InfoView"):
+        showTails.append(option)
+        xystring = config.get("InfoView",option)
+        splat =  xystring.split(",")
+        placeTails.append((int(splat[0]),int(splat[1]),int(splat[2])))
+        print option + config.get("InfoView",option)
+
 
 def main(screen):
+    loadSettings()
+
     global bibliography
     bibliography = load(biblocation)
 
