@@ -1,8 +1,17 @@
 import re
 import base64 
 import curses
+import subprocess
 
 biblocation = 'Index.bib'
+pdfReader = 'evince'
+#What columns should we put where?
+show = ["Title", "Author","Year"]
+placement = [(1,45),(46,90),(91,97)]
+
+#Specify detail view
+showTails = ["Title", "Author", "Keywords", "Publisher", "Year"]
+placeTails =[(1,1,50),(3,1,50),(5,1,50),(1,53,50),(3,53,50)]
 
 class BibItem:
 
@@ -54,7 +63,7 @@ def parse(text):
         entry = obj.groupdict()
         key = entry["key"].strip('\t ')
         value = clip(entry["val"],0).strip(" ")
-        info[key] = value
+        info[key] = value[1:-1]
 
     item.attributes = info
 
@@ -87,7 +96,7 @@ def load(location):
         # If there's a file referenced add its path
         # Note: should add check for further files
         if 'Bdsk-File-1' in item.attributes:
-            code = item.attributes['Bdsk-File-1'][1:-1]
+            code = item.attributes['Bdsk-File-1']
             decode =  base64.b64decode(code)
             # print "============\n"+decode
             item.file1 = deskParse(decode)
@@ -98,8 +107,6 @@ def load(location):
 def drawHits(window, search, hilite):
     selected = 0
     window.clear()
-    show = ["Title", "Author","Year"]
-    placement = [(1,45),(46,90),(91,97)]
     
     window.addstr(0,0,zipRow(show,placement))
 
@@ -115,7 +122,7 @@ def drawHits(window, search, hilite):
             window.addstr(index+1,0, makeRow(hits[index],show, placement))
 
     window.refresh()
-    return selected
+    return selected, len(hits)
 
 def searchBib(searchString,stop):
     results = []
@@ -173,23 +180,35 @@ def infoRefresh(window, index):
     window.clear()
     window.box()
     
-    window.move(1,1)
-    window.addstr("Title: ")
-    window.addstr(bibliography[index].attributes["Title"])
+    for x in range(0,len(placeTails)):
 
-    window.move(3,1)
-    window.addstr("Author: ")
-    window.addstr(bibliography[index].attributes["Author"])
+        name = showTails[x]
+        placement = placeTails[x]
+
+        if name in bibliography[index].attributes:
+            data = bibliography[index].attributes[name]
+        else:
+            data = ""
+
+        out = name + ": "+ data
+        out = pad(out, placement[2])
+        window.addstr(placement[0], placement[1], out)
 
     window.refresh()
+
+
+def launch(item):
+    if hasattr(item, 'file1'):
+        path = item.file1["relativePath"]
+        command = pdfReader+' \'/home/frederick/Dropbox/References/'+path+"\'&>/dev/null"
+        # quit(command)
+        subprocess.Popen(command, shell=True)
+
+
 
 def main(screen):
     global bibliography
     bibliography = load(biblocation)
-    # for item in bibliography:
-    #     if hasattr(item, 'file1'):
-    #         print item.attributes["Title"]+"="+item.file1["relativePath"]
-
 
     screen.refresh() 
     (maxy,maxx) = screen.getmaxyx()
@@ -212,6 +231,7 @@ def main(screen):
     infoRefresh(info,0)
 
     highlight = 0
+    maxLight = matchHeight-2
     currentSelection = 0
 
     while True:
@@ -228,27 +248,37 @@ def main(screen):
             search.move(y,x-1)
 
             searchstring = searchstring[:len(searchstring)-1]
-            currentSelection = drawHits(matches, searchstring, highlight)
+            currentSelection, maxLight = drawHits(matches, searchstring, highlight)
             infoRefresh(info, currentSelection)
         elif key == curses.KEY_DOWN:
-            if highlight < matchHeight -2:
+            if highlight < maxLight:
                 highlight += 1
-                currentSelection = drawHits(matches, searchstring, highlight)
+                currentSelection, _ = drawHits(matches, searchstring, highlight)
                 infoRefresh(info, currentSelection)
         elif key == curses.KEY_UP:
             if highlight > 0:
                 highlight -= 1
-                currentSelection = drawHits(matches, searchstring, highlight)
+                currentSelection, _ = drawHits(matches, searchstring, highlight)
                 infoRefresh(info, currentSelection)
+        elif key == 10:#10 is keycode for enter
+            if searchstring=="exit":
+                quit()
+            launch(bibliography[currentSelection])
         else:
             if x > maxx -2:
                 continue
-            search.addch(key)
 
+            search.addch(key)
+            
             searchstring = searchstring + curses.keyname(key)
-            currentSelection = drawHits(matches, searchstring, highlight)
+            currentSelection, maxLight = drawHits(matches, searchstring, highlight)
             infoRefresh(info, currentSelection)
 
+        if highlight >= maxLight:
+            highlight = maxLight-1
+            if highlight==-1:
+                highlight=0
+            drawHits(matches, searchstring, highlight)
 
 
 
@@ -256,5 +286,4 @@ def main(screen):
 try: 
      curses.wrapper(main) 
 except KeyboardInterrupt: 
-     print "KeyboardInterrupt: Exiting." 
-     exit() 
+     quit() 
