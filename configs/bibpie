@@ -1,0 +1,17 @@
+[General]
+PathToBib = ~/References/Index.bib
+launchStr = cp '/home/frederick/References/%' ~/Downloads
+
+[MainView]
+Title = 1,68
+Author = 69,128
+Year = 129,133
+
+[InfoView]
+Title = 1,1,68
+Author = 3,1,68
+Keywords = 5,1,68
+Publisher = 1,69,63
+Journal = 3,69,63
+Year = 5,69,63
+
